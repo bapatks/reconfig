@@ -10,6 +10,7 @@ entity ctrl is
     done          : out std_logic;
     size          : in std_logic_vector(C_MEM_ADDR_WIDTH downto 0);
     --addr_gen signals
+    valid           : in std_logic;
     addr_done       : in std_logic;
     addr_size        : out std_logic_vector(C_MEM_ADDR_WIDTH downto 0);
     addr_input_en   : out std_logic;
@@ -58,16 +59,18 @@ begin
 ---------------------------------------------------------------------
       when LOAD =>
         addr_input_en <= '1';
-        addr_output_en <= '1';
         next_state <= CHECK;
 ---------------------------------------------------------------------
       when CHECK =>
-        if (addr_done = '1') then
+        if (valid = '1') then
+          addr_output_en <= '1';
           next_state <= RESULT;
         end if;
 ---------------------------------------------------------------------
       when RESULT =>
+        if(addr_done = '1') then
           next_done_s <= '1';
+        end if;
 ---------------------------------------------------------------------
       when others => null;
     end case;
