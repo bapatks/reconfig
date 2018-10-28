@@ -40,7 +40,7 @@ begin
   process(go,state,done_s)
   begin
 ---------------------------------------------------------------------
-    addr_size      <= (others =>'0');
+    addr_size <= std_logic_vector(resize((unsigned(size) - to_unsigned(1,C_MEM_ADDR_WIDTH)),C_MEM_ADDR_WIDTH));
     addr_en        <= '0';
     next_done_s    <= done_s;
     next_state     <= state;
@@ -53,7 +53,7 @@ begin
         end if;
 ---------------------------------------------------------------------
       when LOAD =>
-				addr_size <= std_logic_vector(resize((unsigned(size) - to_unsigned(1,C_MEM_ADDR_WIDTH)),C_MEM_ADDR_WIDTH));
+				--addr_size <= std_logic_vector(resize((unsigned(size) - to_unsigned(1,C_MEM_ADDR_WIDTH)),C_MEM_ADDR_WIDTH));
         addr_en    <= '1';
         next_state <= CHECK;
 ---------------------------------------------------------------------
@@ -64,7 +64,9 @@ begin
         end if;
 ---------------------------------------------------------------------
       when RESULT =>
-        next_state <= START;
+				if (go = '0') then
+					next_state <= START;
+				end if;
 ---------------------------------------------------------------------
       when others => null;
     end case;
