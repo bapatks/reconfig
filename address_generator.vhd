@@ -11,15 +11,14 @@ entity address_generator is
     mode : in std_logic; --0 for reading, 1 for writing
     clk : in std_logic;
     rst : in std_logic;
-    en : in std_logic; --to count up
-    input : in std_logic_vector(C_MMAP_ADDR_WIDTH - 1 downto 0);
-    max_value : in std_logic_vector(C_MMAP_ADDR_WIDTH - 1 downto 0);
-    go : in std_logic;
-    valid : in std_logic;
-    done : out std_logic;
-    output : out std_logic_vector(C_MMAP_ADDR_WIDTH -1 downto 0);
-    read_en : out std_logic;--used as valid in for data path
-    write_en : out std_logic
+    en : in std_logic;
+    max_value : in std_logic_vector(C_MMAP_ADDR_WIDTH - 1 downto 0); --connect to controller to give max value to count up to INCLUSIVE
+    go : in std_logic; --connect to controller to tell when to start generating input address stream
+    valid : in std_logic; --connect to valid_out from data path, tells when we should enable write_en on the output ram (also to increment counter)
+    done : out std_logic; --connect to memory map, tells when entire circuit is done
+    output : out std_logic_vector(C_MMAP_ADDR_WIDTH -1 downto 0); --outputted count value, goes either to read addr or write addr of RAM depending on use
+    read_en : out std_logic;--connect to valid in on data path
+    write_en : out std_logic --connect to write_en on the output RAM
   );
 end address_generator;
 
@@ -61,7 +60,9 @@ architecture PROC1 of address_generator is
             end if;
           when COUNT_IS =>
             if(unsigned(count) <= unsigned(max_value)) then
-              count <= count + 1;
+              if(en = '1') then
+                count <= (count + 1);
+              end if;
               state <= COUNT_IS;
               read_en <= '1';
             else
@@ -72,7 +73,9 @@ architecture PROC1 of address_generator is
             if(valid = '1') then
               write_en <= '1';
               if(unsigned(count) <= unsigned(max_value)) then
-                count <= count + 1;
+                if(en = '1') then
+                  count <= (count + 1);
+                end if;
                 state <= CHECK_OS; --stay in this state
               else
                 state <= DONE_S;
