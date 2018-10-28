@@ -126,9 +126,8 @@ begin
         clk       => clk,
         rst       => rst,
         go        => go,
-        done      => done,
         size      => size,
-        addr_done => mem_out_done,
+        addr_done => done,
         addr_size => addr_size,
         addr_en   => addr_en);
 -----------------------------------------------------------------------
@@ -155,7 +154,7 @@ begin
         max_value => addr_size,
         go => '1',
         valid => mem_out_wr_data_valid,
-        done => mem_out_done,
+        done => done,
         output => mem_out_wr_addr,
         read_en=> open,
         write_en=> mem_out_wr_en);
