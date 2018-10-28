@@ -11,7 +11,7 @@ entity ctrl is
     done            : out std_logic;
     size            : in std_logic_vector(C_MEM_ADDR_WIDTH downto 0);
     addr_done       : in std_logic;
-    addr_size       : out std_logic_vector(C_MEM_ADDR_WIDTH downto 0);
+    addr_size       : out std_logic_vector(C_MEM_ADDR_WIDTH-1 downto 0);
     addr_en   : out std_logic
       );
 end ctrl;
@@ -41,7 +41,7 @@ begin
   begin
 ---------------------------------------------------------------------
     addr_size      <= (others =>'0');
-    addr_input_en  <= '0';
+    addr_en        <= '0';
     next_done_s    <= done_s;
     next_state     <= state;
 ---------------------------------------------------------------------
@@ -49,7 +49,7 @@ begin
 ---------------------------------------------------------------------
       when START =>
         if (go = '1') then
-          next_state <= SIZE;
+          next_state <= LOAD;
         end if;
 ---------------------------------------------------------------------
       when LOAD =>

@@ -12,11 +12,11 @@ entity address_generator is
     clk : in std_logic;
     rst : in std_logic;
     en : in std_logic;
-    max_value : in std_logic_vector(C_MEM_ADDR_WIDTH - 1 downto 0); --connect to controller to give max value to count up to INCLUSIVE
+    max_value : in std_logic_vector(C_MMAP_ADDR_WIDTH - 1 downto 0); --connect to controller to give max value to count up to INCLUSIVE
     go : in std_logic; --connect to controller to tell when to start generating input address stream
     valid : in std_logic; --connect to valid_out from data path, tells when we should enable write_en on the output ram (also to increment counter)
     done : out std_logic; --connect to memory map, tells when entire circuit is done
-    output : out std_logic_vector(C_MEM_ADDR_WIDTH -1 downto 0); --outputted count value, goes either to read addr or write addr of RAM depending on use
+    output : out std_logic_vector(C_MMAP_ADDR_WIDTH -1 downto 0); --outputted count value, goes either to read addr or write addr of RAM depending on use
     read_en : out std_logic;--connect to valid in on data path
     write_en : out std_logic --connect to write_en on the output RAM
   );
@@ -26,7 +26,7 @@ architecture PROC1 of address_generator is
     type STATE_TYPE is (INIT_S, WAIT_S, COUNT_IS, DONE_S,
                         CHECK_OS);
     signal state, next_state   : STATE_TYPE;
-    signal count : unsigned(C_MEM_ADDR_WIDTH - 1 downto 0);
+    signal count : unsigned(C_MMAP_ADDR_WIDTH - 1 downto 0);
   --  signal read_en_reg : std_logic_vector;
   begin
     process(clk, rst)

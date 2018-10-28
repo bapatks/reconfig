@@ -27,7 +27,7 @@ architecture default of user_app is
     signal go   : std_logic;
     signal size : std_logic_vector(C_MEM_ADDR_WIDTH downto 0);
     signal done : std_logic;
-    signal addr_size  : std_logic_vector(C_MEM_ADDR_WIDTH-1 downto 0);
+    signal addr_size  : std_logic_vector(C_MEM_ADDR_WIDTH downto 0);
     signal addr_en    : std_logic;
 
     signal mem_in_wr_data       : std_logic_vector(C_MEM_IN_WIDTH-1 downto 0);
@@ -141,10 +141,10 @@ begin
         max_value => addr_size,
         go => addr_en,
         valid => '-',
-        done => open,
+        done => '-',
         output => mem_in_rd_addr,
-        read_en=> mem_in_rd_addr_valid,
-        write_en=> open);
+        read_en=> mem_in_rd_addr_valid
+        write_en=> '-');
 ------------------------------------------------------------------------
     U_ADDRESS_GENERATOR_OUTPUT : entity work.address_generator
       port map(
@@ -154,10 +154,10 @@ begin
         en => '1',
         max_value => addr_size,
         go => '1',
-        valid => mem_out_wr_data_valid,
-        done => mem_out_done,
+        valid => mem_out_wr_data valid,
+        done => addr_done,
         output => mem_out_wr_addr,
-        read_en=> open,
+        read_en=> '-',
         write_en=> mem_out_wr_en);
 	
 	-- TODO: instatiate controllerm datapath/pipeline, address generators, 
