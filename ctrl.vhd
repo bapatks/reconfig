@@ -53,7 +53,7 @@ begin
         end if;
 ---------------------------------------------------------------------
       when LOAD =>
-        addr_size  <= std_logic_vector(unsigned(size) - to_unsigned(1,C_MEM_ADDR_WIDTH+1));
+				addr_size <= std_logic_vector(resize((unsigned(size) - to_unsigned(1,C_MEM_ADDR_WIDTH)),C_MEM_ADDR_WIDTH));
         addr_en    <= '1';
         next_state <= CHECK;
 ---------------------------------------------------------------------
