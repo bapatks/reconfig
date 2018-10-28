@@ -27,6 +27,8 @@ architecture default of user_app is
     signal go   : std_logic;
     signal size : std_logic_vector(C_MEM_ADDR_WIDTH downto 0);
     signal done : std_logic;
+    signal addr_size  : std_logic_vector(C_MEM_ADDR_WIDTH);
+    signal addr_en    : std_logic;
 
     signal mem_in_wr_data       : std_logic_vector(C_MEM_IN_WIDTH-1 downto 0);
     signal mem_in_wr_addr       : std_logic_vector(C_MEM_ADDR_WIDTH-1 downto 0);
@@ -71,10 +73,7 @@ begin
             mem_out_rd_data => mem_out_rd_data,
             mem_out_rd_addr => mem_out_rd_addr
             );
-	------------------------------------------------------------------------------
-
-	
-	------------------------------------------------------------------------------
+------------------------------------------------------------------------------
     -- input memory
     -- written to by memory map
     -- read from by controller+datapath
@@ -90,10 +89,7 @@ begin
             wdata => mem_in_wr_data,
             raddr => mem_in_rd_addr,  -- TODO: connect to input address generator
             rdata => mem_in_rd_data); -- TODO: connect to pipeline input
-	------------------------------------------------------------------------------
-
-	
-	------------------------------------------------------------------------------
+------------------------------------------------------------------------------
     -- output memory
     -- written to by controller+datapath
     -- read from by memory map
@@ -109,8 +105,60 @@ begin
             wdata => mem_out_wr_data,  -- TODO: connect to pipeline output
             raddr => mem_out_rd_addr,
             rdata => mem_out_rd_data);
-	------------------------------------------------------------------------------
-	
+------------------------------------------------------------------------------
+    U_DATAPATH  : entity work.datapath
+      generic map(
+        width => )
+      port map(
+        clk       => clk,
+        rst       => rst,
+        en        => '1',
+        valid_in  => mem_in_rd_addr_valid,
+        valid_out => mem_out_wr_data_valid,
+        in1       => mem_in_rd_data(31 downto 24),
+        in2       => mem_in_rd_data(23 downto 16),
+        in3       => mem_in_rd_data(15 downto 8),
+        in4       => mem_in_rd_data(7 downto 0),
+        output    => mem_out_wr_data);
+----------------------------------------------------------------------
+    U_CONTROLLER  : entity work.ctrl
+      port map(
+        clk       => clk,
+        rst       => rst,
+        go        => go,
+        done      => done,
+        size      => size,
+        addr_done => mem_out_done,
+        addr_size => addr_size,
+        addr_en   => addr_en);
+-----------------------------------------------------------------------
+    U_ADDRESS_GENERATOR_INPUT : entity work.address_generator
+      port map(
+        mode => '0',
+        clk => clk,
+        rst => rst,
+        en => '1',
+        max_value => addr_size,
+        go => addr_en,
+        valid =>,
+        done =>,
+        output => mem_in_rd_addr,
+        read_en=> mem_in_rd_addr_valid,
+        write_en=> );
+------------------------------------------------------------------------
+    U_ADDRESS_GENERATOR_OUTPUT : entity work.address_generator
+      port map(
+        mode => '1',
+        clk => clk,
+        rst => rst,
+        en => '1',
+        max_value => addr_size,
+        go => '1',
+        valid => mem_out_wr_data valid,
+        done => addr_done,
+        output => mem_out_wr_addr,
+        read_en=> ,
+        write_en=> mem_out_wr_en);
 	
 	-- TODO: instatiate controllerm datapath/pipeline, address generators, 
 	-- and any other necessary logic
