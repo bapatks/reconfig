@@ -107,7 +107,7 @@ end address_generator;
 
 
 architecture PROC2 of address_generator is
-  type STATE_TYPE is (INIT_S, WAIT_S, COUNT_IS, DONE_S,
+  type STATE_TYPE is (INIT_S, WAIT_S, COUNT_IS, DELAY_IS, DONE_S,
                       CHECK_OS);
   signal state, next_state   : STATE_TYPE;
   signal count : unsigned(C_MEM_ADDR_WIDTH - 1 downto 0);
@@ -130,9 +130,10 @@ architecture PROC2 of address_generator is
       process(state, count, en, max_value, valid, go, mode)
       begin
         next_read_en <= '0';
-        write_en <= '0';
+      --  write_en <= '0';
         done <= '0';
         next_state <= state;
+        next_count <= count;
         case state is
           when INIT_S =>
             next_count <= (others => '0');
@@ -154,16 +155,20 @@ architecture PROC2 of address_generator is
               if(en = '1') then
                 next_count <= count + 1;
               end if;
-            next_read_en <= '1';
-            next_state <= COUNT_IS;
+              next_read_en <= '1';
+              next_state <= COUNT_IS;
           else
-            next_state <= DONE_S;
+            next_state <= DELAY_IS;
           end if;
+
+          when DELAY_IS =>
+              next_state <= DONE_S;
+              next_read_en <= '1';
 
           when CHECK_OS =>
             if (valid = '1') then
-              write_en <= '1';
-              if(unsigned(count) <= unsigned(max_value)) then
+            --  write_en <= '1';
+              if(unsigned(count) < unsigned(max_value)) then
                 if(en = '1') then
                   next_count <= count + 1;
                 end if;
@@ -173,12 +178,7 @@ architecture PROC2 of address_generator is
                 next_state <= DONE_S;
               end if;
             else
-							if (unsigned(count) >= unsigned(max_value)) then
-								next_state <= DONE_S;
-								write_en <= '1';
-							else
-								next_state <= CHECK_OS;
-							end if;
+              next_state <= CHECK_OS;
             end if;
 
           when DONE_S =>
@@ -192,4 +192,5 @@ architecture PROC2 of address_generator is
       end process;
 
       output <= std_logic_vector(count);
+      write_en <= valid;
 end PROC2;
