@@ -22,79 +22,174 @@ entity address_generator is
   );
 end address_generator;
 
-architecture PROC1 of address_generator is
-    type STATE_TYPE is (INIT_S, WAIT_S, COUNT_IS, DONE_S,
-                        CHECK_OS);
-    signal state, next_state   : STATE_TYPE;
-    signal count : unsigned(C_MEM_ADDR_WIDTH - 1 downto 0);
-  --  signal read_en_reg : std_logic_vector;
-  begin
-    process(clk, rst)
+-- architecture PROC1 of address_generator is
+--     type STATE_TYPE is (INIT_S, WAIT_S, COUNT_IS, DONE_S,
+--                         CHECK_OS);
+--     signal state, next_state   : STATE_TYPE;
+--     signal count : unsigned(C_MEM_ADDR_WIDTH - 1 downto 0);
+--   --  signal read_en_reg : std_logic_vector;
+--   begin
+--     process(clk, rst)
+--     begin
+--       if(rst = '1') then
+--         state <= INIT_S;
+--         count <= (others => '0');
+--         done <= '0';
+--         read_en <= '0';
+--     --    read_en_reg <= '0';
+--         write_en <= '0';
+--     elsif(rising_edge(clk)) then
+--     --    read_en <= read_en_reg;
+--         write_en <= '0';
+--         done <= '0';
+--         read_en <= '0';
+--         case state is
+--           when INIT_S =>
+--           --  done <= '0';
+--             count <= (others => '0');
+--             state <= WAIT_S;
+-- --            read_en_reg <= '0';
+--           when WAIT_S =>
+--             if(go = '0') then
+--               state <= WAIT_S;
+--             else
+--               if(mode = '0') then --read address generator, go to proper set of states
+--                 state <= COUNT_IS;
+--               --  read_en <= '1';
+--               else
+--                 state <= CHECK_OS; --write address generator, go to proper set of states
+--               end if;
+--             end if;
+--
+--           when COUNT_IS =>
+--             if(unsigned(count) < unsigned(max_value)) then
+--               if(en = '1') then
+--                 count <= (count + 1);
+--               end if;
+--               state <= COUNT_IS;
+--               read_en <= '1';
+--             else
+--               read_en <= '0';
+--               state <= DONE_S;
+--             end if;
+--
+--           when CHECK_OS =>
+--             if(valid = '1') then
+--               write_en <= '1';
+--               if(unsigned(count) < unsigned(max_value)) then
+--                 if(en = '1') then
+--                   count <= (count + 1);
+--                 end if;
+--                 state <= CHECK_OS; --stay in this state
+--               else
+--                 state <= DONE_S;
+--                 write_en <= '0';
+--                 done <= '1';
+--               end if;
+--             else
+--               state <= CHECK_OS;
+--             end if;
+--           when DONE_S =>
+--             done <= '1';
+--             if(go = '1') then
+--               state <= DONE_S;
+--             else
+--               state <= INIT_S;
+--             end if;
+--           end case;
+--         end if;
+--     end process;
+--
+--     output <= std_logic_vector(count);
+-- --    write_en <= valid;
+--   end PROC1;
+
+
+
+architecture PROC2 of address_generator is
+  type STATE_TYPE is (INIT_S, WAIT_S, COUNT_IS, DONE_S,
+                      CHECK_OS);
+  signal state, next_state   : STATE_TYPE;
+  signal count : unsigned(C_MEM_ADDR_WIDTH - 1 downto 0);
+  signal next_count : unsigned(C_MEM_ADDR_WIDTH - 1 downto 0);
+  signal next_read_en : std_logic;
     begin
-      if(rst = '1') then
-        state <= INIT_S;
-        count <= (others => '0');
-  --      done <= '0';
-        read_en <= '0';
-    --    read_en_reg <= '0';
-    --    write_en <= '0';
-    elsif(rising_edge(clk)) then
-    --    read_en <= read_en_reg;
+      process(clk, rst)
+      begin
+          if(rst = '1') then
+            state <= INIT_S;
+            count <= (others => '0');
+            read_en <= '0';
+          elsif(rising_edge(clk)) then
+            state <= next_state;
+            count <= next_count;
+            read_en <= next_read_en;
+          end if;
+      end process;
+
+      process(state, count, en, max_value, valid, go, mode)
+      begin
+        next_read_en <= '0';
         write_en <= '0';
         done <= '0';
+        next_state <= state;
         case state is
           when INIT_S =>
-          --  done <= '0';
-            count <= (others => '0');
-            state <= WAIT_S;
---            read_en_reg <= '0';
+            next_count <= (others => '0');
+            next_state <= WAIT_S;
+
           when WAIT_S =>
-            if(go = '0') then
-              state <= WAIT_S;
+            if(go = '0') then --read mode
+              next_state <= WAIT_S;
             else
-              if(mode = '0') then --read address generator, go to proper set of states
-                state <= COUNT_IS;
+              if(mode = '0') then
+                next_state <= COUNT_IS;
               else
-                state <= CHECK_OS; --write address generator, go to proper set of states
+                next_state <= CHECK_OS;
               end if;
-            end if;
-          when COUNT_IS =>
-            if(unsigned(count) <= unsigned(max_value)) then
-              if(en = '1') then
-                count <= (count + 1);
-              end if;
-              state <= COUNT_IS;
-              read_en <= '1';
-            else
-              state <= DONE_S;
             end if;
 
+          when COUNT_IS =>
+            if(unsigned(count) < unsigned(max_value)) then
+              if(en = '1') then
+                next_count <= count + 1;
+              end if;
+            next_read_en <= '1';
+            next_state <= COUNT_IS;
+          else
+            next_state <= DONE_S;
+          end if;
+
           when CHECK_OS =>
-            if(valid = '1') then
+            if (valid = '1') then
               write_en <= '1';
               if(unsigned(count) <= unsigned(max_value)) then
                 if(en = '1') then
-                  count <= (count + 1);
+                  next_count <= count + 1;
                 end if;
-                state <= CHECK_OS; --stay in this state
+              next_state <= CHECK_OS;
               else
-                state <= DONE_S;
+                --done <= '1';
+                next_state <= DONE_S;
               end if;
             else
-              state <= CHECK_OS;
+							if (unsigned(count) >= unsigned(max_value)) then
+								next_state <= DONE_S;
+								write_en <= '1';
+							else
+								next_state <= CHECK_OS;
+							end if;
             end if;
+
           when DONE_S =>
             done <= '1';
             if(go = '1') then
-              state <= DONE_S;
+              next_state <= DONE_S;
             else
-              state <= INIT_S;
+              next_state <= INIT_S;
             end if;
-          end case;
-        end if;
-    end process;
+        end case;
+      end process;
 
-    output <= std_logic_vector(count);
-
-
-  end PROC1;
+      output <= std_logic_vector(count);
+end PROC2;
