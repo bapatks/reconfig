@@ -8,12 +8,12 @@ entity dualflopsync is
     clk1    : in std_logic;
     clk2    : in std_logic;
     rst     : in std_logic;
-    input   : in std_logic_vector(width-1 downto 0);
-    output  : out std_logic_vector(width-1 downto 0));
+    input   : in std_logic;
+    output  : out std_logic);
 end dualflopsync;
 
 architecture STR of dualflopsync is
-  signal wire1,wire2  : std_logic_vector(width-1 downto 0);
+  signal wire1,wire2  : std_logic;
 begin
   U_REG_S : entity work.reg
     generic map(

@@ -7,8 +7,8 @@ entity reg is
   port(
     clk : in std_logic;
     rst : in std_logic;
-    input : in std_logic_vector(width-1 downto 0);
-    output  : out std_logic_vector(width-1 downto 0));
+    input : in std_logic;
+    output  : out std_logic);
 end reg;
 
 architecture BHV of reg is
@@ -16,7 +16,7 @@ begin
   process(clk,rst)
   begin
     if (rst = '1') then
-      output <= (others => '0');
+      output <= '0';
     elsif (clk'event and clk = '1') then
       output <= input;
     end if;

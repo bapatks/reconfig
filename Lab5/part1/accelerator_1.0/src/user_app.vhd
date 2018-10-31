@@ -89,7 +89,7 @@ begin
         port map (
             clk    => clks(1),
             rst    => dest_rst,
-            input  => pulse,  -- INCORRECT: not synchronized, will go metastable
+            input  => pulse_sync,  -- INCORRECT: not synchronized, will go metastable
             output => count);
 
     -- simple way to make sure dest counter is cleared every time
@@ -97,7 +97,15 @@ begin
 
     ---------------------------------------------------------------------------
     -- CDC
-
+    U_DFS : entity work.dualflopsync
+      generic map(
+        width => 32)
+      port map(
+        clk1  => clks(0),
+        clk2  => clks(1),
+        rst   => rst,
+        input => pulse,
+        output  => pulse_sync);
     -- TODO: Instantiate a dual flop synchronizer to properly synchronize the
     -- pulse signal that crosses domain 1 to domain 2. You will also need to
     -- make minor corrections to the other parts of the code.
