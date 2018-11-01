@@ -32,6 +32,7 @@ architecture TRANSITIONAL of handshake is
   signal state_dest : state_type2;
 
   signal send_s, ack_s : std_logic;
+  signal send1, send2, ack1, ack2 : std_logic;
 begin
 
   -----------------------------------------------------------------------------
@@ -47,7 +48,8 @@ begin
     elsif (rising_edge(clk_src)) then
 
       ack    <= '0';
-
+      ack1  <= ack_s;
+      ack2  <= ack1;
       case state_src is
         when S_READY =>
           if (go = '1') then
@@ -56,13 +58,13 @@ begin
           end if;
 
         when S_WAIT_FOR_ACK =>
-          if (ack_s = '1') then
+          if (ack2 = '1') then
             send_s <= '0';
             state_src <= S_RESET_ACK;
           end if;
 
         when S_RESET_ACK =>
-          if (ack_s = '0') then
+          if (ack2 = '0') then
             ack            <= '1';
             state_src <= S_READY;
           end if;
@@ -85,11 +87,13 @@ begin
     elsif (rising_edge(clk_dest)) then
 
       rcv <= '0';
+      send1 <= send_s;
+      send2 <= send1;
 
       case state_dest is
         when S_READY =>
           -- if source is sending data, assert rcv (received)
-          if (send_s = '1') then
+          if (send2 = '1') then
             rcv        <= '1';
             state_dest <= S_SEND_ACK;
           end if;
@@ -103,7 +107,7 @@ begin
 
         when S_RESET_ACK =>
           -- send ack unless it is delayed
-          if (send_s = '0') then
+          if (send2 = '0') then
             ack_s      <= '0';
             state_dest <= S_READY;
           end if;
