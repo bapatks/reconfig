@@ -5,8 +5,7 @@ use ieee.numeric_std.all;
 entity window_buffer is
   generic(
     buffer_size : positive  := 8;
-    word_size   : positive  := 4
-         );
+    word_size   : positive  := 4);
   port(
     clk     : in std_logic;
     rst     : in std_logic;
